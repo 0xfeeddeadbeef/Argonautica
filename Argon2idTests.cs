@@ -13,6 +13,7 @@ namespace Argonautica;
 /// </remarks>
 [SupportedOSPlatform("linux")]
 [SupportedOSPlatform("windows")]
+[Collection("AssemblyLoader")]
 public sealed class Argon2idTests
 {
     // C# compiler recognizes constant initializer of ReadOnlySpan<byte> and puts its data
@@ -50,6 +51,12 @@ public sealed class Argon2idTests
     {
         0x4b, 0x53, 0x7c, 0xa5, 0xe0, 0x2b, 0xe4, 0x06, 0xce, 0x9e, 0x9e, 0xa3, 0x27, 0x9c, 0x6e, 0x26,
     };
+
+    public Argon2idTests(AssemblyLoaderTracingFixture fixture)
+    {
+        ArgumentNullException.ThrowIfNull(fixture);
+        _ = fixture;
+    }
 
     [Fact]
     public void TestBigHonkinArgon2idWithEverything()
