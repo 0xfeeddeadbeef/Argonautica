@@ -29,5 +29,7 @@ jobs:
       run: dotnet restore -p:Platform=x64 -p:Configuration=Release
     - name: Build Project
       run: dotnet build --no-restore -p:Platform=x64 -p:Configuration=Release
+    - name: Show Tree
+      run: tree -a $GITHUB_WORKSPACE
     - name: Test Project
       run: dotnet test --no-build --verbosity normal -p:Platform=x64 -p:Configuration=Release
