@@ -9,98 +9,99 @@ using System.Threading.Tasks;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Argonautica;
-
-[CollectionDefinition("AssemblyLoader")]
-public sealed class AssemblyLoaderTracingCollection : ICollectionFixture<AssemblyLoaderTracingFixture>
+namespace Argonautica
 {
-}
-
-public sealed class AssemblyLoaderTracingFixture : IAsyncLifetime, IDisposable
-{
-    private readonly IMessageSink _output;
-    private AssemblyLoadEventListener? _listener;
-
-    public AssemblyLoaderTracingFixture(IMessageSink output)
+    [CollectionDefinition("AssemblyLoader")]
+    public sealed class AssemblyLoaderTracingCollection : ICollectionFixture<AssemblyLoaderTracingFixture>
     {
-        ArgumentNullException.ThrowIfNull(output);
-        _output = output;
     }
 
-    public Task InitializeAsync()
+    public sealed class AssemblyLoaderTracingFixture : IAsyncLifetime, IDisposable
     {
-        _output.OnMessage(new DiagnosticMessage("RID={0}", RuntimeInformation.RuntimeIdentifier));
+        private readonly IMessageSink _output;
+        private AssemblyLoadEventListener? _listener;
 
-        _listener = new AssemblyLoadEventListener(_output);
-        return Task.CompletedTask;
-    }
-
-    public Task DisposeAsync()
-    {
-        _listener?.Dispose();
-        _listener = null;
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _listener?.Dispose();
-        _listener = null;
-    }
-}
-
-public sealed class AssemblyLoadEventListener : EventListener
-{
-    private readonly IMessageSink _output;
-
-    public AssemblyLoadEventListener(IMessageSink output)
-    {
-        ArgumentNullException.ThrowIfNull(output);
-        _output = output;
-    }
-
-    protected override void OnEventSourceCreated(EventSource eventSource)
-    {
-        if (eventSource is not null)
+        public AssemblyLoaderTracingFixture(IMessageSink output)
         {
-            if (string.Equals(eventSource.Name, "Microsoft-Windows-DotNETRuntime", StringComparison.Ordinal))
-            {
-                EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
-            }
+            ArgumentNullException.ThrowIfNull(output);
+            _output = output;
+        }
 
-            base.OnEventSourceCreated(eventSource);
+        public Task InitializeAsync()
+        {
+            _output.OnMessage(new DiagnosticMessage("RID={0}", RuntimeInformation.RuntimeIdentifier));
+
+            _listener = new AssemblyLoadEventListener(_output);
+            return Task.CompletedTask;
+        }
+
+        public Task DisposeAsync()
+        {
+            _listener?.Dispose();
+            _listener = null;
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _listener?.Dispose();
+            _listener = null;
         }
     }
 
-    protected override void OnEventWritten(EventWrittenEventArgs eventData)
+    public sealed class AssemblyLoadEventListener : EventListener
     {
-        const int assemblyLoadStart = 290;
-        const int resolutionAttempted = 292;
-        const int knownPathProbed = 296;
+        private readonly IMessageSink _output;
 
-        if (eventData is not null)
+        public AssemblyLoadEventListener(IMessageSink output)
         {
-            var source = eventData.EventSource.Name;
-            var id = eventData.EventId;
+            ArgumentNullException.ThrowIfNull(output);
+            _output = output;
+        }
 
-            if (string.Equals(source, "Microsoft-Windows-DotNETRuntime", StringComparison.Ordinal))
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource is not null)
             {
-                var payload = eventData.Payload;
-
-                if (id == assemblyLoadStart)
+                if (string.Equals(eventSource.Name, "Microsoft-Windows-DotNETRuntime", StringComparison.Ordinal))
                 {
-                    _output.OnMessage(new DiagnosticMessage("[AssemblyLoadStart] Name='{0}', Path='{1}'",
-                        payload![1], payload![2]));
+                    EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
                 }
-                else if (id == resolutionAttempted)
-                {
-                    _output.OnMessage(new DiagnosticMessage("[ResolutionAttempted] Name='{0}', Result={1}, Error='{3}'",
-                        payload![1] ?? "(null)", payload![4], payload![7] ?? "(null)"));
 
-                }
-                else if (id == knownPathProbed)
+                base.OnEventSourceCreated(eventSource);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            const int assemblyLoadStart = 290;
+            const int resolutionAttempted = 292;
+            const int knownPathProbed = 296;
+
+            if (eventData is not null)
+            {
+                var source = eventData.EventSource.Name;
+                var id = eventData.EventId;
+
+                if (string.Equals(source, "Microsoft-Windows-DotNETRuntime", StringComparison.Ordinal))
                 {
-                    _output.OnMessage(new DiagnosticMessage("[KnownPathProbed] Path='{0}', Result={1}", payload![1], payload![3]));
+                    var payload = eventData.Payload;
+
+                    if (id == assemblyLoadStart)
+                    {
+                        _output.OnMessage(new DiagnosticMessage("[AssemblyLoadStart] Name='{0}', Path='{1}'",
+                            payload![1], payload![2]));
+                    }
+                    else if (id == resolutionAttempted)
+                    {
+                        _output.OnMessage(new DiagnosticMessage("[ResolutionAttempted] Name='{0}', Result={1}, Error='{3}'",
+                            payload![1] ?? "(null)", payload![4], payload![7] ?? "(null)"));
+
+                    }
+                    else if (id == knownPathProbed)
+                    {
+                        _output.OnMessage(new DiagnosticMessage("[KnownPathProbed] Path='{0}', Result={1}", payload![1], payload![3]));
+                    }
                 }
             }
         }

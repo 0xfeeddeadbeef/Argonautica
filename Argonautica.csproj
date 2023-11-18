@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Platforms>x64</Platforms>
         <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
         <ImplicitUsings>disabe</ImplicitUsings>
@@ -27,7 +27,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="Argonautica.Native.x64" Version="3.0.0" />
+        <PackageReference Include="Argonautica.Native.x64" Version="[3.0.0]" />
     </ItemGroup>
 
     <ItemGroup>
@@ -41,6 +41,13 @@
 
     <ItemGroup>
         <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.CLSCompliant">
+            <_Parameter1>true</_Parameter1>
+            <_Parameter1_IsLiteral>true</_Parameter1_IsLiteral>
+        </AssemblyAttribute>
     </ItemGroup>
 
 </Project>
