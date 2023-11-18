@@ -34,7 +34,7 @@ jobs:
     - name: Show Tree
       run: tree -a $GITHUB_WORKSPACE
     - name: Test Project (with Tracing)
-      run: dotnet-trace collect --providers Microsoft-Windows-DotNETRuntime:4 --show-child-io -- dotnet test --no-build --verbosity normal -p:Platform=x64 -p:Configuration=Release
+      run: dotnet-trace collect --providers Microsoft-Windows-DotNETRuntime:4 -- dotnet test --no-build --verbosity normal -p:Platform=x64 -p:Configuration=Release
     - name: Publish Traces
       if: ${{ always() }}
       uses: actions/upload-artifact@v3
