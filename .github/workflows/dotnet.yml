@@ -32,4 +32,6 @@ jobs:
     - name: Show Tree
       run: tree -a $GITHUB_WORKSPACE
     - name: Test Project (with Tracing)
-      run: dotnet test --no-build --verbosity diag -p:Platform=x64 -p:Configuration=Release
+      run: |
+        export LD_DEBUG="all"
+        dotnet test --verbosity normal -p:Platform=x64 -p:Configuration=Release
