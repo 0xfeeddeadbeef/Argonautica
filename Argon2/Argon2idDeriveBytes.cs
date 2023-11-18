@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
@@ -37,6 +39,26 @@ public class Argon2idDeriveBytes : DeriveBytes
     private readonly int _iterations;
     private readonly int _memoryCost;
     private readonly int _parallelism;
+
+    static Argon2idDeriveBytes()
+    {
+        //AssemblyLoadContext.Default.ResolvingUnmanagedDll
+        NativeLibrary.SetDllImportResolver(
+            Assembly.GetExecutingAssembly(),
+            new DllImportResolver(MyResolver));
+    }
+
+    private static IntPtr MyResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        if (libraryName.Contains("libargon2", StringComparison.OrdinalIgnoreCase))
+        {
+            return NativeLibrary.Load(
+                System.IO.Path.Combine(AppContext.BaseDirectory,
+                    "runtimes", "linux-x64", "native", libraryName));
+        }
+
+        return IntPtr.Zero;
+    }
 
     //
     // Note about password length: Argon2 allows 0-length (but not null) passwords
