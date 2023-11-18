@@ -23,6 +23,8 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 6.0.x
+    - name: Install .NET Trace Tool
+      run: dotnet tool install --global dotnet-trace
     - name: Authenticate with GitHub Packages
       run: dotnet nuget update source GitHub --username GitHub --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Restore Packages
@@ -31,5 +33,11 @@ jobs:
       run: dotnet build --no-restore -p:Platform=x64 -p:Configuration=Release
     - name: Show Tree
       run: tree -a $GITHUB_WORKSPACE
-    - name: Test Project
-      run: dotnet test --no-build --verbosity normal -p:Platform=x64 -p:Configuration=Release
+    - name: Test Project (with Tracing)
+      run: dotnet-trace collect --providers Microsoft-Windows-DotNETRuntime:4 --show-child-io -- dotnet test --no-build --verbosity normal -p:Platform=x64 -p:Configuration=Release
+    - name: Publish Traces
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: NativeLibraryProbing
+        path: '**/*.nettrace'
